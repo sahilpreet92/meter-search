@@ -14,11 +14,9 @@
 <pre id="result"></pre>
 
 <script>
-/* 🔥 MUST be at top (GLOBAL) */
 let data = [];
 let loaded = false;
 
-/* CSV LOAD */
 fetch("data.csv")
   .then(res => res.text())
   .then(text => {
@@ -34,22 +32,24 @@ fetch("data.csv")
       );
 
       if (c.length >= 5) {
+        // 🔥 extract ONLY DIGITS from meter column
+        let meterDigits = c[4].replace(/\D/g,"");
+
         data.push({
           acct: c[0],
           legacy: c[1],
           name: c[2],
           address: c[3],
-          meter: c[4].replace(/\D/g,"") // digits only
+          meter: meterDigits
         });
       }
     });
 
-    loaded = true; // ✅ IMPORTANT
+    loaded = true;
     document.getElementById("result").textContent = "✅ Data ready";
-    console.log("Loaded rows:", data.length);
+    console.log("Sample:", data[0]);
   });
 
-/* SEARCH */
 function search() {
   let out = document.getElementById("result");
 
@@ -58,6 +58,7 @@ function search() {
     return;
   }
 
+  // 🔥 user input → digits only
   let input = document.getElementById("search").value;
   let userDigits = input.replace(/\D/g,"");
 
@@ -66,36 +67,24 @@ function search() {
     return;
   }
 
-  // 1️⃣ Exact match
-  let exact = data.find(d => d.meter === userDigits);
-  if (exact) return show(exact);
+  // 🔥 SUPER LOOSE MATCH
+  let found = data.find(d =>
+    d.meter.includes(userDigits) ||
+    userDigits.includes(d.meter)
+  );
 
-  // 2️⃣ Ends-with match
-  let ends = data
-    .filter(d => d.meter.endsWith(userDigits))
-    .sort((a,b) => b.meter.length - a.meter.length)[0];
-  if (ends) return show(ends);
-
-  // 3️⃣ Contains match
-  let contains = data
-    .filter(d => d.meter.includes(userDigits))
-    .sort((a,b) => b.meter.length - a.meter.length)[0];
-  if (contains) return show(contains);
-
-  out.textContent = "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
-}
-
-/* OUTPUT */
-function show(found) {
-  document.getElementById("result").textContent =
-    "Account ID: " + found.acct + "\n" +
-    "Legacy Account: " + found.legacy + "\n" +
-    "Name: " + found.name + "\n" +
-    "Address: " + found.address;
+  if (found) {
+    out.textContent =
+      "Account ID: " + found.acct + "\n" +
+      "Legacy Account: " + found.legacy + "\n" +
+      "Name: " + found.name + "\n" +
+      "Address: " + found.address;
+  } else {
+    out.textContent =
+      "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
+  }
 }
 </script>
-
-
 
 <!-- <script>
 let data = [];
