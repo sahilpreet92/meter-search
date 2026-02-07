@@ -14,42 +14,6 @@
 <pre id="result"></pre>
 
 <script>
-let data = [];
-let loaded = false;
-
-fetch("data.csv")
-  .then(res => res.text())
-  .then(text => {
-    let rows = text
-      .replace(/\uFEFF/g,"")
-      .trim()
-      .split("\n")
-      .slice(1);
-
-    rows.forEach(r => {
-      let c = r.split(",").map(x =>
-        x.replace(/"/g,"").replace(/\r/g,"").trim()
-      );
-
-      if (c.length >= 5) {
-        // 🔥 extract ONLY DIGITS from meter column
-        let meterDigits = c[4].replace(/\D/g,"");
-
-        data.push({
-          acct: c[0],
-          legacy: c[1],
-          name: c[2],
-          address: c[3],
-          meter: meterDigits
-        });
-      }
-    });
-
-    loaded = true;
-    document.getElementById("result").textContent = "✅ Data ready";
-    console.log("Sample:", data[0]);
-  });
-
 function search() {
   let out = document.getElementById("result");
 
@@ -58,33 +22,55 @@ function search() {
     return;
   }
 
-  // 🔥 user input → digits only
   let input = document.getElementById("search").value;
-  let userDigits = input.replace(/\D/g,"");
+  let userDigits = input.replace(/\D/g, "");
 
   if (!userDigits) {
     out.textContent = "❌ Meter serial number bharo";
     return;
   }
 
-  // 🔥 SUPER LOOSE MATCH
-  let found = data.find(d =>
-    d.meter.includes(userDigits) ||
-    userDigits.includes(d.meter)
-  );
-
-  if (found) {
-    out.textContent =
-      "Account ID: " + found.acct + "\n" +
-      "Legacy Account: " + found.legacy + "\n" +
-      "Name: " + found.name + "\n" +
-      "Address: " + found.address;
-  } else {
-    out.textContent =
-      "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
+  // 🔥 1. Exact match
+  let exact = data.find(d => d.meter === userDigits);
+  if (exact) {
+    show(exact);
+    return;
   }
+
+  // 🔥 2. Ends-with match (best for last digits)
+  let ends = data
+    .filter(d => d.meter.endsWith(userDigits))
+    .sort((a,b) => b.meter.length - a.meter.length)[0];
+
+  if (ends) {
+    show(ends);
+    return;
+  }
+
+  // 🔥 3. Contains match (fallback)
+  let contains = data
+    .filter(d => d.meter.includes(userDigits))
+    .sort((a,b) => b.meter.length - a.meter.length)[0];
+
+  if (contains) {
+    show(contains);
+    return;
+  }
+
+  // ❌ Nothing found
+  out.textContent =
+    "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
+}
+
+function show(found) {
+  document.getElementById("result").textContent =
+    "Account ID: " + found.acct + "\n" +
+    "Legacy Account: " + found.legacy + "\n" +
+    "Name: " + found.name + "\n" +
+    "Address: " + found.address;
 }
 </script>
+
 
 <!-- <script>
 let data = [];
@@ -148,3 +134,4 @@ function search() {
 
 </body>
 </html>
+
