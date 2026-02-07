@@ -11,7 +11,7 @@
 <input type="text" id="search" placeholder="Enter Meter Serial Number">
 <button onclick="search()">Search</button>
 
-<pre id="result"></pre>
+<pre id="result" style="margin-top: 20px; font-family: sans-serif;"></pre>
 
 <script>
 let data = [];
@@ -20,34 +20,38 @@ let loaded = false;
 fetch("data.csv")
   .then(res => res.text())
   .then(text => {
-    let rows = text
-      .replace(/\uFEFF/g,"")
-      .trim()
-      .split("\n")
-      .slice(1);
+    // Remove BOM and split rows
+    let rows = text.replace(/\uFEFF/g,"").trim().split("\n").slice(1);
 
     rows.forEach(r => {
-      let c = r.split(",").map(x =>
-        x.replace(/"/g,"").replace(/\r/g,"").trim()
-      );
-
+      // Basic split by comma
+      let c = r.split(",");
+      
       if (c.length >= 5) {
-        // 🔥 extract ONLY DIGITS from meter column
-        let meterDigits = c[4].replace(/\D/g,"");
+        // The meter serial number is always the LAST column
+        let rawMeter = c[c.length - 1].replace(/"/g,"").trim();
+        // Extract only digits for searching
+        let meterDigits = rawMeter.replace(/\D/g,"");
+
+        // The address is everything between column 3 and the last column
+        let addressPart = c.slice(3, -1).join(",").replace(/"/g, "").trim();
 
         data.push({
-          acct: c[0],
-          legacy: c[1],
-          name: c[2],
-          address: c[3],
+          acct: c[0].replace(/"/g,"").trim(),
+          legacy: c[1].replace(/"/g,"").trim(),
+          name: c[2].replace(/"/g,"").trim(),
+          address: addressPart,
           meter: meterDigits
         });
       }
     });
 
     loaded = true;
-    document.getElementById("result").textContent = "✅ Data ready";
-    console.log("Sample:", data[0]);
+    document.getElementById("result").textContent = "✅ Data ready (" + data.length + " records)";
+  })
+  .catch(err => {
+    document.getElementById("result").textContent = "❌ Error loading CSV";
+    console.error(err);
   });
 
 function search() {
@@ -58,7 +62,6 @@ function search() {
     return;
   }
 
-  // 🔥 user input → digits only
   let input = document.getElementById("search").value;
   let userDigits = input.replace(/\D/g,"");
 
@@ -67,10 +70,9 @@ function search() {
     return;
   }
 
-  // 🔥 SUPER LOOSE MATCH
-  let found = data.find(d =>
-    d.meter.includes(userDigits) ||
-    userDigits.includes(d.meter)
+  // Find exact or partial match, ensuring we don't match empty strings
+  let found = data.find(d => 
+    d.meter !== "" && d.meter.includes(userDigits)
   );
 
   if (found) {
@@ -78,73 +80,13 @@ function search() {
       "Account ID: " + found.acct + "\n" +
       "Legacy Account: " + found.legacy + "\n" +
       "Name: " + found.name + "\n" +
-      "Address: " + found.address;
-  } else {
-    out.textContent =
-      "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
-  }
-}
-</script>
-
-<!-- <script>
-let data = [];
-let loaded = false;   // 🔥 load flag
-
-fetch("data.csv")
-  .then(res => res.text())
-  .then(text => {
-    let rows = text.trim().split("\n").slice(1);
-
-    rows.forEach(r => {
-      let c = r.split(",").map(x =>
-        x.replace(/"/g, "").replace(/\r/g, "").trim()
-      );
-
-      if (c.length >= 5) {
-        data.push({
-          acct: c[0],
-          legacy: c[1],
-          name: c[2],
-          address: c[3],
-          meter: c[4]   // ✅ CLEANED
-        });
-      }
-    });
-
-    loaded = true;
-    console.log("CSV loaded:", data.length);
-    document.getElementById("result").textContent = "✅ Data ready";
-  });
-
-function search() {
-  let out = document.getElementById("result");
-
-  if (!loaded) {
-    out.textContent = "⏳ Data load ho rahi aa… 1 sec ruk";
-    return;
-  }
-
-  let val = document.getElementById("search").value
-              .replace(/\s+/g, "")
-              .replace(/\r/g, "")
-              .trim();
-
-  let found = data.find(d => d.meter === val);
-
-  if (found) {
-    out.textContent =
-      "Account ID: " + found.acct + "\n" +
-      "Legacy Account: " + found.legacy + "\n" +
-      "Name: " + found.name + "\n" +
-      "Address: " + found.address;
+      "Address: " + found.address + "\n" +
+      "Meter: " + found.meter;
   } else {
     out.textContent = "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
   }
 }
-</script> -->
-
-
-
+</script>
 
 </body>
 </html>
