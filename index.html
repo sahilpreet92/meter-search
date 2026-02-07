@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
-  <title>Meter Search</title>
+  <title>Meter Search By Sahilpreet</title>
 </head>
 <body style="display: block;text-align: center;margin: 0 auto;width: 100%;font-size: 25px;font-weight: bold;">
 
@@ -89,6 +89,60 @@ function search() {
 }
 </script>
 
+
+  
+                 <script>
+                    (function () {
+                        // Function to check if the user is on a mobile device
+                        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                        if (!isMobile) { // Run the code ONLY if the user is NOT on a mobile device
+                            // Disable right-click
+                            document.addEventListener("contextmenu", (event) => {
+                                event.preventDefault();
+                                alert("Right-click is disabled on this website.");
+                            });
+                
+                            // Disable specific keyboard shortcuts
+                            document.addEventListener("keydown", (event) => {
+                                // Block F12
+                                if (event.key === "F12") {
+                                    event.preventDefault();
+                                    alert("Developer tools are disabled for this website.");
+                                }
+                
+                                // Block Ctrl+Shift+I and Ctrl+Shift+J
+                                if (event.ctrlKey && event.shiftKey && ["I", "J"].includes(event.key.toUpperCase())) {
+                                    event.preventDefault();
+                                    alert("Developer tools are disabled for this website.");
+                                }
+                
+                                // Block Ctrl+U (View Source)
+                                if (event.ctrlKey && event.key.toUpperCase() === "U") {
+                                    event.preventDefault();
+                                    alert("Viewing source code is disabled for this website.");
+                                }
+                            });
+                
+                            // Detect Developer Tools Opening
+                            const detectDevTools = () => {
+                                const threshold = 160; // Threshold for detecting dev tools
+                                const devToolsOpen =
+                                    window.outerWidth - window.innerWidth > threshold ||
+                                    window.outerHeight - window.innerHeight > threshold;
+                
+                                if (devToolsOpen) {
+                                    alert("Developer tools are disabled for this website. Please close them.");
+                                }
+                            };
+                
+                            setInterval(detectDevTools, 1000); // Run detection every second
+                        }
+                    })();
+                </script>
+
+
 </body>
 
 </html>
+
