@@ -14,6 +14,42 @@
 <pre id="result"></pre>
 
 <script>
+/* 🔥 MUST be at top (GLOBAL) */
+let data = [];
+let loaded = false;
+
+/* CSV LOAD */
+fetch("data.csv")
+  .then(res => res.text())
+  .then(text => {
+    let rows = text
+      .replace(/\uFEFF/g,"")
+      .trim()
+      .split("\n")
+      .slice(1);
+
+    rows.forEach(r => {
+      let c = r.split(",").map(x =>
+        x.replace(/"/g,"").replace(/\r/g,"").trim()
+      );
+
+      if (c.length >= 5) {
+        data.push({
+          acct: c[0],
+          legacy: c[1],
+          name: c[2],
+          address: c[3],
+          meter: c[4].replace(/\D/g,"") // digits only
+        });
+      }
+    });
+
+    loaded = true; // ✅ IMPORTANT
+    document.getElementById("result").textContent = "✅ Data ready";
+    console.log("Loaded rows:", data.length);
+  });
+
+/* SEARCH */
 function search() {
   let out = document.getElementById("result");
 
@@ -23,45 +59,33 @@ function search() {
   }
 
   let input = document.getElementById("search").value;
-  let userDigits = input.replace(/\D/g, "");
+  let userDigits = input.replace(/\D/g,"");
 
   if (!userDigits) {
     out.textContent = "❌ Meter serial number bharo";
     return;
   }
 
-  // 🔥 1. Exact match
+  // 1️⃣ Exact match
   let exact = data.find(d => d.meter === userDigits);
-  if (exact) {
-    show(exact);
-    return;
-  }
+  if (exact) return show(exact);
 
-  // 🔥 2. Ends-with match (best for last digits)
+  // 2️⃣ Ends-with match
   let ends = data
     .filter(d => d.meter.endsWith(userDigits))
     .sort((a,b) => b.meter.length - a.meter.length)[0];
+  if (ends) return show(ends);
 
-  if (ends) {
-    show(ends);
-    return;
-  }
-
-  // 🔥 3. Contains match (fallback)
+  // 3️⃣ Contains match
   let contains = data
     .filter(d => d.meter.includes(userDigits))
     .sort((a,b) => b.meter.length - a.meter.length)[0];
+  if (contains) return show(contains);
 
-  if (contains) {
-    show(contains);
-    return;
-  }
-
-  // ❌ Nothing found
-  out.textContent =
-    "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
+  out.textContent = "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
 }
 
+/* OUTPUT */
 function show(found) {
   document.getElementById("result").textContent =
     "Account ID: " + found.acct + "\n" +
@@ -70,6 +94,7 @@ function show(found) {
     "Address: " + found.address;
 }
 </script>
+
 
 
 <!-- <script>
@@ -134,4 +159,3 @@ function search() {
 
 </body>
 </html>
-
