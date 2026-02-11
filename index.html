@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
-  <title>Meter Search By Sahilpreet</title>
+  <title>Meter Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body style="display: block;text-align: center;margin: 0 auto;width: 100%;font-size: 25px;font-weight: bold;">
 
-<h3>ਇੱਥੇ ਸੀਰਿਲ ਨੰਬਰ ਭਰਦੇ</h3>
+<h3>ਇੱਥੇ ਸੀਰਿਲ ਨੰਬਰ ਭਰੋ</h3>
 
 <input type="text" id="search" placeholder="Enter Meter Serial Number">
 <button onclick="search()">Search</button>
@@ -64,33 +64,37 @@ function search() {
   }
 
   let input = document.getElementById("search").value;
-  let userDigits = input.replace(/\D/g,"");
+  let userDigits = input.replace(/\D/g, "");
 
   if (!userDigits) {
     out.textContent = "❌ Meter serial number bharo";
     return;
   }
 
-  // Find exact or partial match, ensuring we don't match empty strings
-  let found = data.find(d => 
+  // 1. Use .filter() instead of .find() to get ALL matches
+  let matches = data.filter(d => 
     d.meter !== "" && d.meter.includes(userDigits)
   );
 
-  if (found) {
-    out.textContent =
-      "Account ID: " + found.acct + "\n" +
-      "Legacy Account: " + found.legacy + "\n" +
-      "Name: " + found.name + "\n" +
-      "Address: " + found.address + "\n" +
-      "Meter: " + found.meter;
+  if (matches.length > 0) {
+    // 2. Map through the matches to create a formatted string for each
+    let resultsText = matches.map((found, index) => {
+      return `--- Result ${index + 1} ---\n` +
+             `Account ID: ${found.acct}\n` +
+             `Legacy Account: ${found.legacy}\n` +
+             `Name: ${found.name}\n` +
+             `Address: ${found.address}\n` +
+             `Meter: ${found.meter}\n`;
+    }).join("\n"); // Join them with an extra newline for spacing
+
+    out.textContent = resultsText;
   } else {
-    out.textContent = "❌ ਹੈ ਨੀ ਭਰਾਵਾ ਕੁਝ ਜਾ ਕੇ ਡਵੀਜ਼ਨ ਚੋਂ ਬਣਵਾਲਾ ਬਿੱਲ ਇਹਦਾ";
+    out.textContent = "❌ ਡਵੀਜ਼ਨ ਚੋਂ ਜਾ ਕੇ ਬਿੱਲ ਬਣਵਾਓ";
   }
 }
 </script>
 
 
-  
                  <script>
                     (function () {
                         // Function to check if the user is on a mobile device
@@ -143,6 +147,4 @@ function search() {
 
 
 </body>
-
 </html>
-
